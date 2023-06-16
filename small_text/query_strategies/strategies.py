@@ -71,6 +71,7 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
     def __init__(self, lower_is_better=False):
         self.lower_is_better = lower_is_better
         self.scores_ = None
+        self.last_confidence = None
 
     def query(self, clf, dataset, indices_unlabeled, indices_labeled, y, n=10):
         self._validate_query_input(indices_unlabeled, n)
@@ -81,6 +82,7 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
             return np.array(indices_unlabeled)
 
         indices_partitioned = np.argpartition(confidence[indices_unlabeled], n)[:n]
+        self.last_confidence = confidence[indices_partitioned]
         return np.array([indices_unlabeled[i] for i in indices_partitioned])
 
     def score(self, clf, dataset, indices_unlabeled, indices_labeled, y):
@@ -136,6 +138,10 @@ class ConfidenceBasedQueryStrategy(QueryStrategy):
             Array of confidence scores in the shape (n_samples, n_classes).
         """
         pass
+
+    @property
+    def confidence(self):
+        return self.last_confidence
 
     def __str__(self):
         return 'ConfidenceBasedQueryStrategy()'
